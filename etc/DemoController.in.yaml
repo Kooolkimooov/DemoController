@@ -1,35 +1,55 @@
 ---
 # If true, the FSM transitions are managed by an external tool
 Managed: false
+
 # If true and the FSM is self-managed, transitions should be triggered
 StepByStep: true
+
 # Change idle behaviour, if true the state is kept until transition,
 # otherwise the FSM holds the last state until transition
 IdleKeepState: false
+
 # Where to look for state libraries
 StatesLibraries:
 - "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@"
 - "@MC_STATES_RUNTIME_INSTALL_PREFIX@"
+
 # Where to look for state files
 StatesFiles:
 - "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@/data"
 - "@MC_STATES_RUNTIME_INSTALL_PREFIX@/data"
+
 # If true, state factory will be more verbose
 VerboseStateFactory: false
+
 # Additional robots to load
 robots:
   ground:
     module: env/ground
+  jvrc1:
+    PostureTask:
+      jointWeights:
+        WAIST_R: 10
+        WAIST_P: 10
+      # For arm swing
+      jointGains:
+        - jointName: R_SHOULDER_P
+          stiffness: 400
+        - jointName: L_SHOULDER_P
+          stiffness: 400
+
 # General constraints, always on
 constraints:
 - type: contact
 - type: dynamics
   damper: [0.1, 0.01, 0.5]
 - type: compoundJoint
+
 # Collision constraint
 collisions:
 - type: collision
   useMinimal: true
+
 # Initial set of contacts
 contacts:
 - r2: ground
@@ -39,6 +59,13 @@ contacts:
   r1Surface: RightFoot
   r2Surface: AllGround
 
+CentroidalManager:
+  method: PreviewControlZmp
+  horizonDuration: 2.0
+  horizonDt: 0.005
+  useActualStateForMpc: false
+  enableZmpFeedback: true
+
 # Some options for a specific robot
 jvrc1:
   posture:
@@ -47,10 +74,13 @@ jvrc1:
   ff:
     stiffness: 2
     weight: 100
+
 # Implement some additional text states
 states: {}
+
 # Transitions map
 transitions:
 - [DemoController_Initial, OK, DemoController_Initial, Strict]
+
 # Initial state
 init: DemoController_Initial

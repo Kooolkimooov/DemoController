@@ -17,4 +17,6 @@ install(TARGETS ${PROJECT_NAME}
 add_controller(${PROJECT_NAME}_controller lib.cpp "")
 target_link_libraries(${PROJECT_NAME}_controller PUBLIC ${PROJECT_NAME})
 
+target_link_libraries(${PROJECT_NAME} PUBLIC baseline_walking_controller::BaselineWalkingController)
+
 add_subdirectory(states)
