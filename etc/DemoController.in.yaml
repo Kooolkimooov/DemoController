@@ -13,11 +13,13 @@ IdleKeepState: false
 StatesLibraries:
 - "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@"
 - "@MC_STATES_RUNTIME_INSTALL_PREFIX@"
+- "@BWC_STATES_LIBRARIES@"
 
 # Where to look for state files
 StatesFiles:
 - "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@/data"
 - "@MC_STATES_RUNTIME_INSTALL_PREFIX@/data"
+- "@BWC_STATES_FILES@"
 
 # If true, state factory will be more verbose
 VerboseStateFactory: false
@@ -40,12 +42,12 @@ robots:
   box_0:
     module: env/box
     init_pos:
-      translation: [1.75, 0.5, 0.75]
+      translation: [1.75, 0.3, 0.75]
       rotation: [0.0, 0.0, 1.57]
   box_1:
     module: env/box
     init_pos:
-      translation: [1.75, -0.5, 0.75]
+      translation: [1.75, -0.3, 0.75]
       rotation: [0.0, 0.0, 1.57]
 
   ground:
@@ -62,12 +64,26 @@ robots:
         - jointName: L_SHOULDER_P
           stiffness: 400
 
-# General constraints, always on
-constraints:
-- type: contact
-- type: dynamics
-  damper: [0.1, 0.01, 0.5]
-- type: compoundJoint
+    CoMTask:
+      activeJoints: [
+        "Root",
+        "R_HIP_Y", "R_HIP_R", "R_HIP_P", "R_KNEE", "R_ANKLE_P", "R_ANKLE_R",
+        "L_HIP_Y", "L_HIP_R", "L_HIP_P", "L_KNEE", "L_ANKLE_P", "L_ANKLE_R" ]
+
+    BaseOrientationTask:
+      frame: WAIST_R_S
+
+    FootManager:
+      enableArmSwing: true
+      jointAnglesForArmSwing:
+        Left:
+          R_SHOULDER_P: [ -0.13962634015954636 ] # -8
+          L_SHOULDER_P: [ 0.06981317007977318 ] # 4
+        Right:
+          R_SHOULDER_P: [ 0.06981317007977318 ] # 4
+          L_SHOULDER_P: [ -0.13962634015954636 ] # -8
+
+
 
 # Collision constraint
 collisions:
@@ -75,36 +91,235 @@ collisions:
   useMinimal: true
 
 # Initial set of contacts
-contacts:
-- r2: ground
-  r1Surface: LeftFoot
-  r2Surface: AllGround
-- r2: ground
-  r1Surface: RightFoot
-  r2Surface: AllGround
-
-CentroidalManager:
-  method: PreviewControlZmp
-  horizonDuration: 2.0
-  horizonDt: 0.005
-  useActualStateForMpc: false
-  enableZmpFeedback: true
-
-# Some options for a specific robot
-jvrc1:
-  posture:
-    stiffness: 1
-    weight: 10
-  ff:
-    stiffness: 2
-    weight: 100
+contacts: []
 
 # Implement some additional text states
-states: {}
+states:
+  Initial:
+    base: BWC::Initial
+    configs:
+      autoStartTime: 2.0
+
+  Walk:
+    base: BWC::ConfigWalk
+    configs:
+      footMidpose:
+        target: [0.8, 0.0, 0.0]
 
 # Transitions map
 transitions:
-- [DemoController_Initial, OK, DemoController_Initial, Strict]
+- [Initial, OK, Walk, Auto]
+- [Walk, Done, Initial, Auto]
 
 # Initial state
 init: DemoController_Initial
+
+
+PostureTask:
+  stiffness: 10
+
+CoMTask:
+  type: com
+  stiffness: [1000., 1000., 1000.]
+  weight: 1000.0
+
+BaseOrientationTask:
+  type: orientation
+  stiffness: 300.0
+  weight: 500.0
+
+FootTaskList:
+  - type: firstOrderImpedance
+    foot: Left
+    frame: LeftFootCenter
+    cutoffPeriod: 0.01
+    stiffness: 1000.0
+    weight: 1000.0
+  - type: firstOrderImpedance
+    foot: Right
+    frame: RightFootCenter
+    cutoffPeriod: 0.01
+    stiffness: 1000.0
+    weight: 1000.0
+
+FootManager:
+  name: FootManager
+  footstepDuration: 0.8 # [sec]
+  doubleSupportRatio: 0.125 # []
+  deltaTransLimit: [0.15, 0.1, 12.5] # (x [m], y [m], theta [deg])
+  midToFootTranss:
+    Left:
+      translation: [0, 0.105, 0] # [m]
+    Right:
+      translation: [0, -0.105, 0] # [m]
+  zmpHorizon: 2.0 # [sec]
+  zmpOffset: [0, -0.02, 0] # (positive for x-forward, y-outside, z-upward) [m]
+  defaultSwingTrajType: IndHorizontalVertical
+  overwriteLandingPose: false
+  stopSwingTrajForTouchDownFoot: true
+  keepPoseForTouchDownFoot: false
+  enableWrenchDistForTouchDownFoot: true
+  enableArmSwing: false
+  fricCoeff: 0.5
+  touchDownRemainingDuration: 0.2 # [sec]
+  touchDownPosError: 0.02 # [m]
+  touchDownForceZ: 100 # [N]
+  impedanceGains:
+    SingleSupport:
+      damper:
+        linear: [300, 300, 300]
+        angular: [100, 100, 100]
+      spring:
+        linear: [2250, 2250, 2250]
+        angular: [0, 0, 2000]
+      wrench:
+        linear: [0, 0, 0]
+        angular: [1, 1, 0]
+    DoubleSupport:
+      damper:
+        linear: [300, 300, 1e4]
+        angular: [100, 100, 100]
+      spring:
+        linear: [2250, 2250, 0]
+        angular: [0, 0, 2000]
+      wrench:
+        linear: [0, 0, 1]
+        angular: [1, 1, 0]
+    Swing:
+      damper:
+        linear: [300, 300, 300]
+        angular: [40, 40, 40]
+      spring:
+        linear: [2250, 2250, 2250]
+        angular: [400, 400, 400]
+      wrench:
+        linear: [0, 0, 0]
+        angular: [0, 0, 0]
+  VelMode:
+    footstepQueueSize: 3
+    enableOnlineFootstepUpdate: true
+  SwingTraj:
+    CubicSplineSimple:
+      withdrawDurationRatio: 0.25
+      withdrawOffset: [0, 0, 0.015] # [m]
+      approachDurationRatio: 0.25
+      approachOffset: [0, 0, 0.015] # [m]
+      swingOffset: [0, 0, 0.05] # [m]
+    IndHorizontalVertical:
+      withdrawDurationRatio: 0.25
+      approachDurationRatio: 0.25
+      verticalTopDurationRatio: 0.5
+      verticalTopOffset: [0, 0, 0.05] # [m]
+      tiltAngleWithdraw: 20 # [deg]
+      tiltAngleApproach: 10 # [deg]
+      tiltAngleWithdrawDurationRatio: 0.25
+      tiltAngleApproachDurationRatio: 0.25
+      tiltCenterWithdrawDurationRatio: 0.25
+      tiltCenterApproachDurationRatio: 0.25
+      tiltDistThre: 0.2 # [m]
+      tiltForwardAngleThre: 10 # [deg]
+    VariableTaskGain:
+      withdrawDurationRatio: 0.25
+      approachDurationRatio: 0.25
+      verticalTopDurationRatio: 0.5
+      verticalTopOffset: [0, 0, 0.05] # [m]
+    LandingSearch:
+      withdrawDurationRatio: 0.2
+      withdrawOffset: [0, 0, 0.04] # [m]
+      preApproachDurationRatio: 0.25
+      approachDurationRatio: 0.2
+      approachOffset: [0, 0, 0.04] # [m]
+
+CentroidalManager:
+  name: CentroidalManager
+  useActualStateForMpc: false
+  enableZmpFeedback: true
+  enableComZFeedback: true
+  dcmGainP: 2.0 # It must be greater than 1 to be stable
+  zmpVelGain: 0.02
+  comZGainP: 2000.0
+  comZGainD: 500.0
+  refComZ: 0.825 # [m]
+  useTargetPoseForControlRobotAnchorFrame: true
+  useActualComForWrenchDist: false
+  actualComOffset: [0.0, 0.0, 0.0]
+  wrenchDistConfig:
+    wrenchWeight:
+      linear: [1.0, 1.0, 1.0]
+      angular: [1.0, 1.0, 1.0]
+    regularWeight: 1e-8
+    ridgeForceMinMax: [3, 1000] # [N]
+  dcmEstimator:
+    enableDcmEstimator: false
+    dcmCorrectionMode: Bias # "Bias", "Filter", or "None"
+    biasDriftPerSecondStd: 0.002
+    dcmMeasureErrorStd: 0.01
+    zmpMeasureErrorStd: 0.005
+    biasLimit: [0.03, 0.03]
+    initDcmUncertainty: [0.01, 0.01]
+    initBiasUncertainty: [0.01, 0.01]
+
+  # PreviewControlZmp
+  method: PreviewControlZmp
+  horizonDuration: 2.0 # [sec]
+  horizonDt: 0.005 # [sec]
+  reinitForRefComZ: true
+
+  # # DdpZmp
+  # method: DdpZmp
+  # horizonDuration: 2.0 # [sec]
+  # horizonDt: 0.02 # [sec]
+  # ddpMaxIter: 3
+
+  # # FootGuidedControl
+  # method: FootGuidedControl
+  # reinitForRefComZ: true
+
+  # # IntrinsicallyStableMpc
+  # method: IntrinsicallyStableMpc
+  # horizonDuration: 2.0 # [sec]
+  # horizonDt: 0.02 # [sec]
+  # reinitForRefComZ: true
+
+
+# OverwriteConfigKeys: [NoSensors]
+
+OverwriteConfigList:
+  NoSensors:
+    FootManager:
+      impedanceGains:
+        SingleSupport:
+          damper:
+            linear: [300, 300, 300]
+            angular: [40, 40, 40]
+          spring:
+            linear: [2250, 2250, 2250]
+            angular: [400, 400, 400]
+          wrench:
+            linear: [0, 0, 0]
+            angular: [0, 0, 0]
+        DoubleSupport:
+          damper:
+            linear: [300, 300, 300]
+            angular: [40, 40, 40]
+          spring:
+            linear: [2250, 2250, 2250]
+            angular: [400, 400, 400]
+          wrench:
+            linear: [0, 0, 0]
+            angular: [0, 0, 0]
+        Swing:
+          damper:
+            linear: [300, 300, 300]
+            angular: [40, 40, 40]
+          spring:
+            linear: [2250, 2250, 2250]
+            angular: [400, 400, 400]
+          wrench:
+            linear: [0, 0, 0]
+            angular: [0, 0, 0]
+
+    CentroidalManager:
+      useActualStateForMpc: false
+      enableZmpFeedback: false
+      useActualComForWrenchDist: false
