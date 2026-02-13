@@ -271,7 +271,7 @@ OverwriteConfigList:
       enableZmpFeedback: false
       useActualComForWrenchDist: false
 
-robots:
+robots: # rhps1
   ground:
     module: env/ground
   table:
@@ -299,7 +299,7 @@ robots:
       rotation: [0.0, 0.0, 1.57]
 
   # Robot-specific configurations
-  jvrc1:
+  rhps1:
     PostureTask:
       jointWeights:
         WAIST_R: 10
@@ -314,11 +314,11 @@ robots:
     CoMTask:
       activeJoints: [
         "Root",
-        "R_HIP_Y", "R_HIP_R", "R_HIP_P", "R_KNEE", "R_ANKLE_P", "R_ANKLE_R",
-        "L_HIP_Y", "L_HIP_R", "L_HIP_P", "L_KNEE", "L_ANKLE_P", "L_ANKLE_R"]
+        "R_CROTCH_Y", "R_CROTCH_R", "R_CROTCH_P", "R_KNEE_P", "R_ANKLE_P", "R_ANKLE_R",
+        "L_CROTCH_Y", "L_CROTCH_R", "L_CROTCH_P", "L_KNEE_P", "L_ANKLE_P", "L_ANKLE_R"]
 
     BaseOrientationTask:
-      frame: WAIST_R_S
+      frame: CHEST_P_LINK
 
     FootManager:
       enableArmSwing: true
