@@ -19,6 +19,10 @@ find_package(baseline_walking_controller REQUIRED)
 add_subdirectory(src)
 
 set(AROBASE "@")
-configure_file(etc/DemoController.in.yaml "${CMAKE_CURRENT_BINARY_DIR}/etc/DemoController.yaml")
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/etc/DemoController.yaml" DESTINATION "${MC_CONTROLLER_RUNTIME_INSTALL_PREFIX}/etc")
+configure_file(etc/DemoController.in.yaml
+        "${CMAKE_CURRENT_BINARY_DIR}/etc/DemoController.yaml"
+)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/etc/DemoController.yaml"
+        DESTINATION "${MC_CONTROLLER_RUNTIME_INSTALL_PREFIX}/etc"
+)
 

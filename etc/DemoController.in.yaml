@@ -5,62 +5,31 @@ Managed: false
 StepByStep: true
 # Change idle behaviour, if true the state is kept until transition,
 # otherwise the FSM holds the last state until transition
-IdleKeepState: true
+IdleKeepState: false
 # Where to look for state libraries
 StatesLibraries:
   - "@BWC_STATES_LIBRARIES@"
   - "@MC_STATES_DEFAULT_INSTALL_PREFIX@"
-  - "@STATES_INSTALL_PREFIX@/@PROJECT_NAME@/states"
+  - "@MC_STATES_RUNTIME_INSTALL_PREFIX@"
 # Where to look for state files
 StatesFiles:
   - "@BWC_STATES_FILES@"
   - "@MC_STATES_DEFAULT_INSTALL_PREFIX@/data"
-  - "@STATES_INSTALL_PREFIX@/@PROJECT_NAME@/states/data"
+  - "@MC_STATES_RUNTIME_INSTALL_PREFIX@/data"
 # If true, state factory will be more verbose
 VerboseStateFactory: false
 # General constraints, always on
 constraints:
-  - type: contact
-  - type: kinematics
-    damper: [0.1, 0.01, 0.5]
-  - type: compoundJoint
+- type: contact
+- type: kinematics
+  damper: [0.1, 0.01, 0.5]
+- type: compoundJoint
 # Collision constraint
 collisions:
-  - type: collision
-    useMinimal: true
+- type: collision
+  useMinimal: true
 # Initial set of contacts
 contacts: []
-
-# Implement some additional text states
-states:
-  Initial:
-    base: BWC::Initial
-    configs:
-      autoStartTime: 2.0
-
-  Walk:
-    base: BWC::ConfigWalk
-    configs:
-      footMidpose:
-        target: [0.8, 0.0, 0.0]
-
-# Transitions map
-transitions:
-  - [Initial, OK, Walk, Auto]
-
-# Initial state
-init: Initial
-
-ObserverPipelines:
-  name: MainObserverPipeline
-  gui: true
-  observers:
-    - type: Encoder
-    - type: Attitude
-    - type: KinematicInertial
-      config:
-        anchorFrame:
-          maxAnchorFrameDiscontinuity: 0.05 # [m]
 
 PostureTask:
   stiffness: 10
@@ -212,23 +181,6 @@ CentroidalManager:
   horizonDt: 0.005 # [sec]
   reinitForRefComZ: true
 
-  # # DdpZmp
-  # method: DdpZmp
-  # horizonDuration: 2.0 # [sec]
-  # horizonDt: 0.02 # [sec]
-  # ddpMaxIter: 3
-
-  # # FootGuidedControl
-  # method: FootGuidedControl
-  # reinitForRefComZ: true
-
-  # # IntrinsicallyStableMpc
-  # method: IntrinsicallyStableMpc
-  # horizonDuration: 2.0 # [sec]
-  # horizonDt: 0.02 # [sec]
-  # reinitForRefComZ: true
-
-
 # OverwriteConfigKeys: [NoSensors]
 
 OverwriteConfigList:
@@ -271,10 +223,39 @@ OverwriteConfigList:
       enableZmpFeedback: false
       useActualComForWrenchDist: false
 
+# Implement some additional text states
+states:
+  Initial:
+    base: DemoController_Initial
+    configs:
+      autoStartTime: 2.0
+
+  Walk:
+    base: BWC::ConfigWalk
+    configs:
+      footMidpose:
+        target: [0.8, 0.0, 0.0]
+
+# Transitions map
+transitions:
+  - [Initial, OK, Walk, Auto]
+
+# Initial state
+init: Initial
+
+ObserverPipelines:
+  name: MainObserverPipeline
+  gui: true
+  observers:
+    - type: Encoder
+    - type: Attitude
+    - type: KinematicInertial
+      config:
+        anchorFrame:
+          maxAnchorFrameDiscontinuity: 0.05 # [m]
+
 robots:
-  ground:
-    module: env/ground
-  table:
+  desk:
     module: env/table
     init_pos:
       translation: [2.0, 0.0, 0.0]
@@ -288,15 +269,19 @@ robots:
     init_pos:
       translation: [0.6, -1.35, 0.0]
   box0:
-    module: object/box
+    module: env/box
     init_pos:
       translation: [1.75, 0.3, 0.75]
       rotation: [0.0, 0.0, 1.57]
   box1:
-    module: object/box
+    module: env/box
     init_pos:
       translation: [1.75, -0.3, 0.75]
       rotation: [0.0, 0.0, 1.57]
+
+  ground:
+    module: env/ground
+
   rhps1:
     PostureTask:
       jointWeights:
@@ -358,3 +343,34 @@ robots:
       method: PreviewControlZmp
       horizonDuration: 2.0 # [sec]
       horizonDt: 0.005 # [sec]
+
+  jvrc1:
+    PostureTask:
+      jointWeights:
+        WAIST_R: 10
+        WAIST_P: 10
+      # For arm swing
+      jointGains:
+        - jointName: R_SHOULDER_P
+          stiffness: 400
+        - jointName: L_SHOULDER_P
+          stiffness: 400
+
+    CoMTask:
+      activeJoints: [
+        "Root",
+        "R_HIP_Y", "R_HIP_R", "R_HIP_P", "R_KNEE", "R_ANKLE_P", "R_ANKLE_R",
+        "L_HIP_Y", "L_HIP_R", "L_HIP_P", "L_KNEE", "L_ANKLE_P", "L_ANKLE_R" ]
+
+    BaseOrientationTask:
+      frame: WAIST_R_S
+
+    FootManager:
+      enableArmSwing: true
+      jointAnglesForArmSwing:
+        Left:
+          R_SHOULDER_P: [ -0.13962634015954636 ] # -8
+          L_SHOULDER_P: [ 0.06981317007977318 ] # 4
+        Right:
+          R_SHOULDER_P: [ 0.06981317007977318 ] # 4
+          L_SHOULDER_P: [ -0.13962634015954636 ] # -8
