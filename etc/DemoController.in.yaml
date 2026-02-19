@@ -226,7 +226,7 @@ OverwriteConfigList:
 # Implement some additional text states
 states:
   Initial:
-    base: DemoController_Initial
+    base: BWC::Initial
     configs:
       autoStartTime: 2.0
 
@@ -258,26 +258,26 @@ robots:
   desk:
     module: env/table
     init_pos:
-      translation: [2.0, 0.0, 0.0]
-      rotation: [0.0, 0.0, 1.57]
+      translation: [ 2.0, 0.0, 0.0 ]
+      rotation: [ 0.0, 0.0, 1.57 ]
   shelf0:
     module: env/table
     init_pos:
-      translation: [0.6, 1.0, 0.0]
+      translation: [ 0.6, 1.0, 0.0 ]
   shelf1:
     module: env/table
     init_pos:
-      translation: [0.6, -1.35, 0.0]
-  box0:
+      translation: [ 0.6, -1.35, 0.0 ]
+  zbox0:
     module: env/box
     init_pos:
-      translation: [1.75, 0.3, 0.75]
-      rotation: [0.0, 0.0, 1.57]
-  box1:
+      translation: [ 1.75, 0.3, 0.75 ]
+      rotation: [ 0.0, 0.0, 1.57 ]
+  zbox1:
     module: env/box
     init_pos:
-      translation: [1.75, -0.3, 0.75]
-      rotation: [0.0, 0.0, 1.57]
+      translation: [ 1.75, -0.3, 0.75 ]
+      rotation: [ 0.0, 0.0, 1.57 ]
 
   ground:
     module: env/ground
