@@ -28,8 +28,6 @@ constraints:
 collisions:
   - type: collision
     useMinimal: true
-# Initial set of contacts
-contacts: [ ]
 
 PostureTask:
   stiffness: 10
@@ -58,7 +56,7 @@ FootTaskList:
 
 FootManager:
   name: FootManager
-  footstepDuration: 0.8 # [sec]
+  footstepDuration: 2.8 # [sec]
   doubleSupportRatio: 0.125 # []
   deltaTransLimit: [ 0.15, 0.1, 12.5 ] # (x [m], y [m], theta [deg])
   midToFootTranss:
@@ -155,7 +153,7 @@ CentroidalManager:
   zmpVelGain: 0.02
   comZGainP: 2000.0
   comZGainD: 500.0
-  refComZ: 0.825 # [m]
+  refComZ: 0.87 # [m]
   useTargetPoseForControlRobotAnchorFrame: true
   useActualComForWrenchDist: false
   actualComOffset: [ 0.0, 0.0, 0.0 ]
@@ -234,7 +232,7 @@ states:
     base: BWC::ConfigWalk
     configs:
       footMidpose:
-        target: [ 0.8, 0.0, 0.0 ]
+        target: [ 1.0, 0.3, 0.0 ]
 
 # Transitions map
 transitions:
@@ -283,16 +281,6 @@ robots:
     module: env/ground
 
   rhps1:
-    PostureTask:
-      jointWeights:
-        CHEST_P: 50
-      # For arm swing
-      jointGains:
-        - jointName: R_SHOULDER_P
-          stiffness: 400
-        - jointName: L_SHOULDER_P
-          stiffness: 400
-
     CoMTask:
       activeJoints: [
         "Root",
@@ -302,60 +290,7 @@ robots:
     BaseOrientationTask:
       frame: CHEST_P_LINK
 
-    FootManager:
-      footstepDuration: 0.9 # [sec]
-      doubleSupportRatio: 0.15 # []
-      deltaTransLimit: [ 0.15, 0.1, 7.5 ] # (x [m], y [m], theta [deg])
-      midToFootTranss:
-        Left:
-          translation: [ 0, 0.11, 0 ] # [m]
-        Right:
-          translation: [ 0, -0.11, 0 ] # [m]
-      impedanceGains:
-        SingleSupport:
-          damper:
-            angular: [ 150, 150, 100 ]
-          spring:
-            linear: [ 2250, 2250, 450 ] # Weaken Z-component spring to avoid a too fast recovery for mass errors
-        DoubleSupport:
-          damper:
-            linear: [ 300, 300, 1.5e4 ]
-            angular: [ 150, 150, 100 ]
-      jointAnglesForArmSwing:
-        Left:
-          R_SHOULDER_P: [ 0.17453292519943295 ] # 10
-          L_SHOULDER_P: [ 0.3490658503988659 ] # 20
-        Right:
-          R_SHOULDER_P: [ 0.3490658503988659 ] # 20
-          L_SHOULDER_P: [ 0.17453292519943295 ] # 10
-
-    CentroidalManager:
-      useActualStateForMpc: false
-      enableZmpFeedback: true
-      enableComZFeedback: true
-      dcmGainP: 2.0 # It must be greater than 1 to be stable
-      zmpVelGain: 0.02
-      comZGainP: 20000.0
-      comZGainD: 500.0
-      refComZ: 0.96 # [m]
-      useTargetPoseforControlRobotAnchorFrame: true
-      useActualComForWrenchDist: false
-      method: PreviewControlZmp
-      horizonDuration: 2.0 # [sec]
-      horizonDt: 0.005 # [sec]
-
   jvrc1:
-    PostureTask:
-      jointWeights:
-        WAIST_R: 10
-        WAIST_P: 10
-      # For arm swing
-      jointGains:
-        - jointName: R_SHOULDER_P
-          stiffness: 400
-        - jointName: L_SHOULDER_P
-          stiffness: 400
-
     CoMTask:
       activeJoints: [
         "Root",
@@ -364,13 +299,3 @@ robots:
 
     BaseOrientationTask:
       frame: WAIST_R_S
-
-    FootManager:
-      enableArmSwing: true
-      jointAnglesForArmSwing:
-        Left:
-          R_SHOULDER_P: [ -0.13962634015954636 ] # -8
-          L_SHOULDER_P: [ 0.06981317007977318 ] # 4
-        Right:
-          R_SHOULDER_P: [ 0.06981317007977318 ] # 4
-          L_SHOULDER_P: [ -0.13962634015954636 ] # -8
