@@ -229,36 +229,11 @@ states:
       autoStartTime: 2.0
 
   Walk:
-    base: BWC::FootstepPlanner
+    base: BWC::ConfigWalk
     configs:
-      autoStart: true
-      goalFootMidpose: [ 1.1, 0.3, 0.0 ] # [m], [rad]
-      maxPlanningDuration: 1.0 # [sec]
-      initialHeuristicsWeight: 10.0
+      footMidpose:
+        target: [ 1.2, 0.3, 0.0 ] # [m], [deg]
 
-      footstepPlanner:
-        theta_divide_num: 64
-        xy_divide_step: 0.01 # [m]
-
-        cost_scale: 1.0e3
-        cost_theta_scale: 0.0 # [m/rad]
-        step_cost: 1.0
-
-        heuristic_type: DijkstraPath
-        dijkstra_path_heuristic_expand_scale: 5.0
-
-        nominal_foot_separation: 0.2 # [m]
-
-        r2l_action_cont_list: # [m], [rad]
-          - [ 0.175, 0.0, 0.0 ]
-          - [ -0.125, 0.0, 0.0 ]
-          - [ 0.0, 0.125, 0.0 ]
-          - [ 0.0, -0.05, 0.0 ]
-          - [ 0.0, 0.0, 0.2618 ]
-          - [ 0.0, 0.0, -0.2618 ]
-
-        r2l_reachable_min: [ -0.1, 0.0, -0.1745 ] # [m], [rad]
-        r2l_reachable_max: [ 0.1, 0.1, 0.1745 ] # [m], [rad]
 
 # Transitions map
 transitions:
