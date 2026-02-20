@@ -56,7 +56,7 @@ FootTaskList:
 
 FootManager:
   name: FootManager
-  footstepDuration: 2.8 # [sec]
+  footstepDuration: 0.8 # [sec]
   doubleSupportRatio: 0.125 # []
   deltaTransLimit: [ 0.15, 0.1, 12.5 ] # (x [m], y [m], theta [deg])
   midToFootTranss:
