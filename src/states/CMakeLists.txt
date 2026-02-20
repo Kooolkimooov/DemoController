@@ -1,3 +1,4 @@
 add_fsm_state_simple(DemoController_Initial)
+add_fsm_state_simple(GraspLiftBox)
 
 add_fsm_data_directory(data)

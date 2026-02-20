@@ -28,6 +28,20 @@ constraints:
 collisions:
   - type: collision
     useMinimal: true
+  - type: collision
+    r1: rhps1
+    r2: desk
+    collisions:
+    - body1: L_WRIST_Y_LINK
+      body2: table
+      iDist: 0.1
+      sDist: 0.05
+      damping: 0.0
+    - body1: R_WRIST_Y_LINK
+      body2: table
+      iDist: 0.1
+      sDist: 0.05
+      damping: 0.0
 
 PostureTask:
   stiffness: 10
@@ -234,10 +248,21 @@ states:
       footMidpose:
         target: [ 1.2, 0.3, 0.0 ] # [m], [deg]
 
+  GraspAndLiftBox:
+    base: GraspLiftBox
+    objectName: zbox0
+    objectSurfaceRightGripper: Left
+    objectSurfaceLeftGripper: Right
+    approachOffsetZ: 0.025
+    liftHeight: 0.12
+    completionEval: 0.05
+    completionSpeed: 1.0e-4
 
 # Transitions map
+# TODO: raise hands above table before or during walking, to avoid collision between hands and table
 transitions:
   - [ Initial, OK, Walk, Auto ]
+  - [ Walk, OK, GraspAndLiftBox, Auto ]
 
 # Initial state
 init: Initial
@@ -254,26 +279,26 @@ ObserverPipelines:
           maxAnchorFrameDiscontinuity: 0.05 # [m]
 
 robots:
-  desk:
-    module: env/2box_table
-    init_pos:
-      translation: [ 2.0, 0.0, 0.0 ]
-      rotation: [ 0.0, 0.0, 1.57 ]
   # desk:
-  #   module: env/table
+  #   module: env/2box_table
   #   init_pos:
   #     translation: [ 2.0, 0.0, 0.0 ]
   #     rotation: [ 0.0, 0.0, 1.57 ]
-  # zbox0:
-  #   module: env/box
-  #   init_pos:
-  #     translation: [ 1.75, 0.3, 0.74 ]
-  #     rotation: [ 0.0, 1.57, 0.0 ]
-  # zbox1:
-  #   module: env/box
-  #   init_pos:
-  #     translation: [ 1.75, -0.3, 0.74 ]
-  #     rotation: [ 0.0, 1.57, 0.0 ]
+  desk:
+    module: env/table
+    init_pos:
+      translation: [ 2.0, 0.0, 0.0 ]
+      rotation: [ 0.0, 0.0, 1.57 ]
+  zbox0:
+    module: env/box
+    init_pos:
+      translation: [ 1.75, 0.3, 0.74 ]
+      rotation: [ 0.0, 1.57, 0.0 ]
+  zbox1:
+    module: env/box
+    init_pos:
+      translation: [ 1.75, -0.3, 0.74 ]
+      rotation: [ 0.0, 1.57, 0.0 ]
   shelf0:
     module: env/table
     init_pos:
