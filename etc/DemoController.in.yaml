@@ -280,10 +280,25 @@ ObserverPipelines:
 
 robots:
   desk:
-    module: env/table
+    module: env/2box_table
     init_pos:
       translation: [ 2.0, 0.0, 0.0 ]
       rotation: [ 0.0, 0.0, 1.57 ]
+  # desk:
+  #   module: env/table
+  #   init_pos:
+  #     translation: [ 2.0, 0.0, 0.0 ]
+  #     rotation: [ 0.0, 0.0, 1.57 ]
+  # zbox0:
+  #   module: env/box
+  #   init_pos:
+  #     translation: [ 1.75, 0.3, 0.74 ]
+  #     rotation: [ 0.0, 1.57, 0.0 ]
+  # zbox1:
+  #   module: env/box
+  #   init_pos:
+  #     translation: [ 1.75, -0.3, 0.74 ]
+  #     rotation: [ 0.0, 1.57, 0.0 ]
   shelf0:
     module: env/table
     init_pos:
@@ -292,16 +307,6 @@ robots:
     module: env/table
     init_pos:
       translation: [ 0.6, -1.35, 0.0 ]
-  zbox0:
-    module: env/box
-    init_pos:
-      translation: [ 1.75, 0.3, 0.75 ]
-      rotation: [ 0.0, 1.57, 0.0 ]
-  zbox1:
-    module: env/box
-    init_pos:
-      translation: [ 1.75, -0.3, 0.75 ]
-      rotation: [ 0.0, 1.57, 0.0 ]
 
   ground:
     module: env/ground
