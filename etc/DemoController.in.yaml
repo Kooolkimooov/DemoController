@@ -56,14 +56,14 @@ FootTaskList:
 
 FootManager:
   name: FootManager
-  footstepDuration: 0.8 # [sec]
-  doubleSupportRatio: 0.125 # []
-  deltaTransLimit: [ 0.15, 0.1, 12.5 ] # (x [m], y [m], theta [deg])
+  footstepDuration: 0.9 # [sec]
+  doubleSupportRatio: 0.15 # []
+  deltaTransLimit: [ 0.15, 0.1, 7.5 ] # (x [m], y [m], theta [deg])
   midToFootTranss:
     Left:
-      translation: [ 0, 0.105, 0 ] # [m]
+      translation: [ 0, 0.11, 0 ] # [m]
     Right:
-      translation: [ 0, -0.105, 0 ] # [m]
+      translation: [ 0, -0.11, 0 ] # [m]
   footTaskGain:
     stiffness: 1000.0
   zmpHorizon: 2.0 # [sec]
@@ -75,9 +75,9 @@ FootManager:
   enableWrenchDistForTouchDownFoot: true
   enableArmSwing: false
   fricCoeff: 0.5
-  touchDownRemainingDuration: 0.2 # [sec]
-  touchDownPosError: 0.02 # [m]
-  touchDownForceZ: 100 # [N]
+  touchDownRemainingDuration: 0.12 # [sec]
+  touchDownPosError: 0.015 # [m]
+  touchDownForceZ: 120 # [N]
   impedanceGains:
     SingleSupport:
       damper:
@@ -151,9 +151,9 @@ CentroidalManager:
   enableComZFeedback: true
   dcmGainP: 2.0 # It must be greater than 1 to be stable
   zmpVelGain: 0.02
-  comZGainP: 2000.0
+  comZGainP: 10000.0
   comZGainD: 500.0
-  refComZ: 0.87 # [m]
+  refComZ: 0.96 # [m]
   useTargetPoseForControlRobotAnchorFrame: true
   useActualComForWrenchDist: false
   actualComOffset: [ 0.0, 0.0, 0.0 ]
@@ -229,10 +229,36 @@ states:
       autoStartTime: 2.0
 
   Walk:
-    base: BWC::ConfigWalk
+    base: BWC::FootstepPlanner
     configs:
-      footMidpose:
-        target: [ 1.0, 0.3, 0.0 ]
+      autoStart: true
+      goalFootMidpose: [ 1.1, 0.3, 0.0 ] # [m], [rad]
+      maxPlanningDuration: 1.0 # [sec]
+      initialHeuristicsWeight: 10.0
+
+      footstepPlanner:
+        theta_divide_num: 64
+        xy_divide_step: 0.01 # [m]
+
+        cost_scale: 1.0e3
+        cost_theta_scale: 0.0 # [m/rad]
+        step_cost: 1.0
+
+        heuristic_type: DijkstraPath
+        dijkstra_path_heuristic_expand_scale: 5.0
+
+        nominal_foot_separation: 0.2 # [m]
+
+        r2l_action_cont_list: # [m], [rad]
+          - [ 0.175, 0.0, 0.0 ]
+          - [ -0.125, 0.0, 0.0 ]
+          - [ 0.0, 0.125, 0.0 ]
+          - [ 0.0, -0.05, 0.0 ]
+          - [ 0.0, 0.0, 0.2618 ]
+          - [ 0.0, 0.0, -0.2618 ]
+
+        r2l_reachable_min: [ -0.1, 0.0, -0.1745 ] # [m], [rad]
+        r2l_reachable_max: [ 0.1, 0.1, 0.1745 ] # [m], [rad]
 
 # Transitions map
 transitions:
