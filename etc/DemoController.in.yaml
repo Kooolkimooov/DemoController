@@ -254,7 +254,7 @@ states:
           s1: LeftFootCenter
           s2: RightFootCenter
           position: [ 0.0, 0.2, 0.8 ]
-          orientation: [0.5, 0.5, 0.5, -0.5]
+          orientation: [ 0.5, 0.5, 0.5, -0.5 ]
         completion:
           timeout: 5.0
           AND:
@@ -269,7 +269,7 @@ states:
           s1: LeftFootCenter
           s2: RightFootCenter
           position: [ 0.0, -0.2, 0.8 ]
-          orientation: [0.5, -0.5, 0.5, 0.5]
+          orientation: [ 0.5, -0.5, 0.5, 0.5 ]
         completion:
           timeout: 5.0
           AND:
@@ -287,13 +287,13 @@ states:
     objectName: zbox0
     objectSurfaceRightGripper: Left
     objectSurfaceLeftGripper: Right
-    weight: 10000
-    stiffness: 5
-    approachOffset: 0.4
-    liftHeight: 0.2
-    liftPullback: 0.2
-    completionEval: 0.05
-    completionSpeed: 1.0e-4
+    weight: 1000
+    stiffness: 50
+    approachOffset: 0.5
+    liftHeight: 0.4
+    liftPullback: 0.0
+    completionEval: 0.1
+    completionSpeed: 1.0e-3
 
 transitions:
   - [ Initial, OK, Walk, Auto ]
@@ -315,11 +315,6 @@ ObserverPipelines:
           maxAnchorFrameDiscontinuity: 0.05 # [m]
 
 robots:
-  # desk:
-  #   module: env/2box_table
-  #   init_pos:
-  #     translation: [ 2.0, 0.0, 0.0 ]
-  #     rotation: [ 0.0, 0.0, 1.57 ]
   desk:
     module: env/table
     init_pos:
@@ -328,12 +323,12 @@ robots:
   zbox0:
     module: env/box
     init_pos:
-      translation: [ 1.7, 0.3, 0.74 ]
+      translation: [ 1.7, 0.3, 0.75 ]
       rotation: [ 0.0, 1.57, 0.0 ]
   zbox1:
     module: env/box
     init_pos:
-      translation: [ 1.7, -0.3, 0.74 ]
+      translation: [ 1.7, -0.3, 0.75 ]
       rotation: [ 0.0, 1.57, 0.0 ]
   shelf0:
     module: env/table

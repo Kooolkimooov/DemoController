@@ -82,13 +82,17 @@ bool GraspLiftBox::run(mc_control::fsm::Controller &ctl_)
     if (m_phase == Phase::Approach)
     {
         auto previousLeftTarget = m_leftGripperTask->target();
-        previousLeftTarget.translation() = ctl.robot(m_objectName).frame
-                (m_objectSurfaceLeftGripper).position().translation();
+        previousLeftTarget.translation() = ctl.robot(m_objectName)
+                .frame(m_objectSurfaceLeftGripper)
+                .position()
+                .translation();
         m_leftGripperTask->target(previousLeftTarget);
 
         auto previousRightTarget = m_rightGripperTask->target();
-        previousRightTarget.translation() = ctl.robot(m_objectName).frame
-                (m_objectSurfaceRightGripper).position().translation();
+        previousRightTarget.translation() = ctl.robot(m_objectName)
+                .frame(m_objectSurfaceRightGripper)
+                .position()
+                .translation();
         m_rightGripperTask->target(previousRightTarget);
 
         mc_rtc::log::info("Now in grasping phase");
@@ -98,24 +102,27 @@ bool GraspLiftBox::run(mc_control::fsm::Controller &ctl_)
 
     if (m_phase == Phase::Grasping)
     {
-        ctl.addContact
+        auto leftContact = mc_control::Contact
         (
-            {
-                ctl.robot().name(),
-                ctl.robot(m_objectName).name(),
-                "LeftHandWrench",
-                m_objectSurfaceLeftGripper
-            }
+            ctl.robot().name(),
+            ctl.robot(m_objectName).name(),
+            "LeftHandWrench",
+            m_objectSurfaceLeftGripper,
+            mc_rbdyn::Contact::defaultFriction,
+            Eigen::Vector6d::Ones()
         );
-        ctl.addContact
+        ctl.addContact(leftContact);
+
+        auto rightContact = mc_control::Contact
         (
-            {
-                ctl.robot().name(),
-                ctl.robot(m_objectName).name(),
-                "RightHandWrench",
-                m_objectSurfaceRightGripper
-            }
+            ctl.robot().name(),
+            ctl.robot(m_objectName).name(),
+            "RightHandWrench",
+            m_objectSurfaceRightGripper,
+            mc_rbdyn::Contact::defaultFriction,
+            Eigen::Vector6d::Ones()
         );
+        ctl.addContact(rightContact);
 
         m_contactAdded = true;
 
