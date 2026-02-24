@@ -10,9 +10,9 @@ set(PROJECT_URL "")
 project(${PROJECT_NAME} CXX)
 
 # Check if the project is built inside mc_rtc
-if(NOT TARGET mc_rtc::mc_control)
-  find_package(mc_rtc REQUIRED)
-endif()
+if (NOT TARGET mc_rtc::mc_control)
+    find_package(mc_rtc REQUIRED)
+endif ()
 
 find_package(baseline_walking_controller REQUIRED)
 
