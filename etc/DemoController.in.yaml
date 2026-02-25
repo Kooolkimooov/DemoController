@@ -276,29 +276,51 @@ states:
             - eval: 0.1
             - speed: 1e-4
 
-  Walk:
-    base: BWC::ConfigWalk
-    configs:
-      footMidpose:
-        target: [ 1.25, 0.3, 0.0 ] # [m], [deg]
-
-  GraspAndLiftBox:
-    base: GraspLiftBox
+  MoveBox0:
+    base: GraspMoveBox
     objectName: zbox0
+    graspFromPose: [ 1.25, 0.3, 0.0 ]
+    dropFromPose: [ 0.6, 1.0, 0.0]
     objectSurfaceRightGripper: Left
     objectSurfaceLeftGripper: Right
     weight: 1000
     stiffness: 50
-    approachOffset: 0.5
+    approachOffset: 0.1
     liftHeight: 0.4
     liftPullback: 0.0
     completionEval: 0.1
     completionSpeed: 1.0e-3
 
+  MoveBox1:
+    base: GraspMoveBox
+    objectName: zbox0
+    graspFromPose: [ 1.25, -0.3, 0.0 ]
+    dropFromPose: [ 0.6, 1.0, 0.0 ]
+    objectSurfaceRightGripper: Left
+    objectSurfaceLeftGripper: Right
+    weight: 1000
+    stiffness: 50
+    approachOffset: 0.1
+    liftHeight: 0.4
+    liftPullback: 0.0
+    completionEval: 0.1
+    completionSpeed: 1.0e-3
+
+  Run:
+    base: Meta
+    Managed: false
+    StepByStep: true
+    ResetPostures: false
+    transitions:
+      - [ MoveBox0, OK, MoveBox1, Auto ]
+
+  Main:
+    base: Parallel
+    states: [ BWC::GuiWalk, Run ]
+
+
 transitions:
-  - [ Initial, OK, Walk, Auto ]
-  - [ Walk, OK, RaiseHands, Auto ]
-  - [ RaiseHands, OK, GraspAndLiftBox, Auto ]
+  - [ Initial, OK, Main, Auto ]
 
 # Initial state
 init: Initial
@@ -321,12 +343,12 @@ robots:
       translation: [ 2.0, 0.0, 0.0 ]
       rotation: [ 0.0, 0.0, 1.57 ]
   zbox0:
-    module: env/box
+    module: object/box
     init_pos:
       translation: [ 1.7, 0.3, 0.75 ]
       rotation: [ 0.0, 1.57, 0.0 ]
   zbox1:
-    module: env/box
+    module: object/box
     init_pos:
       translation: [ 1.7, -0.3, 0.75 ]
       rotation: [ 0.0, 1.57, 0.0 ]

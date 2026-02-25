@@ -1,18 +1,21 @@
-#include "GraspLiftBox.h"
+#include "GraspMoveBox.h"
 
 #include <console_bridge/console.h>
 
 #include "../DemoController.h"
 #include "BaselineWalkingController/CentroidalManager.h"
+#include "BaselineWalkingController/FootManager.h"
 
-void GraspLiftBox::configure(const mc_rtc::Configuration &config)
+void GraspMoveBox::configure(const mc_rtc::Configuration &config)
 {
     config("objectName", m_objectName);
     config("objectSurfaceLeftGripper", m_objectSurfaceLeftGripper);
     config("objectSurfaceRightGripper", m_objectSurfaceRightGripper);
+    config("graspFromPose", m_graspFromPose);
+    config("dropFromPose", m_dropFromPose);
     config("stiffness", m_stiffness);
     config("weight", m_weight);
-    config("approachOffsetZ", m_approachOffset);
+    config("approachOffset", m_approachOffset);
     config("liftHeight", m_liftHeight);
     config("liftPullback", m_liftPullback);
     config("completionEval", m_completionEval);
@@ -20,12 +23,14 @@ void GraspLiftBox::configure(const mc_rtc::Configuration &config)
     config("removeContactsAtTeardown", m_removeContactAtTeardown);
 }
 
-void GraspLiftBox::start(mc_control::fsm::Controller &ctl_)
+void GraspMoveBox::start(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
 
-    mc_rtc::log::info("Now in approach phase");
-    m_phase = Phase::Approach;
+    ctl.footManager_->walkToRelativePose(m_graspFromPose);
+
+    mc_rtc::log::info("Now in walking phase");
+    m_phase = Phase::Walking;
     m_contactAdded = false;
 
     m_leftGripperTask = std::make_shared<mc_tasks::TransformTask>
@@ -34,7 +39,7 @@ void GraspLiftBox::start(mc_control::fsm::Controller &ctl_)
         m_stiffness,
         m_weight
     );
-    ctl.solver().addTask(m_leftGripperTask);
+    // ctl.solver().addTask(m_leftGripperTask);
 
     auto leftGripperTargetPose = ctl.robot(m_objectName).frame
             (m_objectSurfaceLeftGripper).position();
@@ -51,7 +56,7 @@ void GraspLiftBox::start(mc_control::fsm::Controller &ctl_)
         m_stiffness,
         m_weight
     );
-    ctl.solver().addTask(m_rightGripperTask);
+    // ctl.solver().addTask(m_rightGripperTask);
 
     auto rightGripperTargetPose = ctl.robot(m_objectName).frame
             (m_objectSurfaceRightGripper).position();
@@ -63,9 +68,21 @@ void GraspLiftBox::start(mc_control::fsm::Controller &ctl_)
     m_rightGripperTask->target(rightGripperTargetPose);
 }
 
-bool GraspLiftBox::run(mc_control::fsm::Controller &ctl_)
+bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
+
+    // This is a hack to ensure the object is visible in mc_mujoco because for some reason the 
+    // box position does not change in the visualization
+    if (m_phase == Phase::Lift)
+    {
+        const auto setPosWCall = m_objectName + "::SetPosW";
+        if (ctl.datastore().has(setPosWCall))
+        {
+            const auto &objectPosW = ctl.robot(m_objectName).posW();
+            ctl.datastore().call<void, const sva::PTransformd &>(setPosWCall, objectPosW);
+        }
+    }
 
     const bool completed = (
         m_leftGripperTask->eval().norm() < m_completionEval
@@ -150,7 +167,7 @@ bool GraspLiftBox::run(mc_control::fsm::Controller &ctl_)
     return false;
 }
 
-void GraspLiftBox::teardown(mc_control::fsm::Controller &ctl_)
+void GraspMoveBox::teardown(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
 
@@ -183,4 +200,4 @@ void GraspLiftBox::teardown(mc_control::fsm::Controller &ctl_)
     }
 }
 
-EXPORT_SINGLE_STATE("GraspLiftBox", GraspLiftBox)
+EXPORT_SINGLE_STATE("GraspMoveBox", GraspMoveBox)

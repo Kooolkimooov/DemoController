@@ -4,7 +4,7 @@
 #include <mc_tasks/TransformTask.h>
 #include <memory>
 
-struct GraspLiftBox : mc_control::fsm::State
+struct GraspMoveBox : mc_control::fsm::State
 {
     void configure(const mc_rtc::Configuration &config) override;
 
@@ -17,6 +17,8 @@ struct GraspLiftBox : mc_control::fsm::State
 private:
     enum class Phase
     {
+        Walking,
+        RaiseHands,
         Approach,
         Grasping,
         Lift,
@@ -27,6 +29,8 @@ private:
 
     std::string m_objectName;
     std::string m_objectSurfaceLeftGripper, m_objectSurfaceRightGripper;
+
+    Eigen::Vector3d m_graspFromPose, m_dropFromPose;
 
     double m_stiffness = 1.0;
     double m_weight = 1000.0;
