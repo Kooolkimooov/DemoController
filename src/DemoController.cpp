@@ -24,26 +24,4 @@ bool DemoController::run()
 void DemoController::reset(const mc_control::ControllerResetData &reset_data)
 {
     BWC::BaselineWalkingController::reset(reset_data);
-    
-    m_box0PostureTask = std::make_shared<mc_tasks::PostureTask>
-            (solver(), robot("zbox0").robotIndex(), 5, 100);
-    solver().addTask(m_box0PostureTask);
-    m_box1PostureTask = std::make_shared<mc_tasks::PostureTask>
-            (solver(), robot("zbox1").robotIndex(), 5, 100);
-    solver().addTask(m_box1PostureTask);
-
-    m_box0KinematicConstraint = std::make_unique<mc_solver::KinematicsConstraint>
-    (
-        robots(),
-        robot("zbox0").robotIndex(),
-        solver().dt()
-    );
-    solver().addConstraintSet(m_box0KinematicConstraint);
-    m_box1KinematicConstraint = std::make_unique<mc_solver::KinematicsConstraint>
-    (
-        robots(),
-        robot("zbox1").robotIndex(),
-        solver().dt()
-    );
-    solver().addConstraintSet(m_box1KinematicConstraint);
 }
