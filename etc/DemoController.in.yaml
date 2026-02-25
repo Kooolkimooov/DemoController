@@ -193,6 +193,17 @@ CentroidalManager:
   horizonDt: 0.005 # [sec]
   reinitForRefComZ: true
 
+ObserverPipelines:
+  name: MainObserverPipeline
+  gui: true
+  observers:
+    - type: Encoder
+    - type: Attitude
+    - type: KinematicInertial
+      config:
+        anchorFrame:
+          maxAnchorFrameDiscontinuity: 0.05 # [m]
+
 # OverwriteConfigKeys: [NoSensors]
 
 OverwriteConfigList:
@@ -235,6 +246,7 @@ OverwriteConfigList:
       enableZmpFeedback: false
       useActualComForWrenchDist: false
 
+
 # Implement some additional text states
 states:
   Initial:
@@ -242,60 +254,32 @@ states:
     configs:
       autoStartTime: 2.0
 
-  RaiseHands:
-    base: MetaTasks
-    tasks:
-      EndEffectorTaskRight:
-        type: body6d
-        frame: LeftHandWrench
-        weight: 1000
-        stiffness: 5
-        relative:
-          s1: LeftFootCenter
-          s2: RightFootCenter
-          position: [ 0.0, 0.2, 0.8 ]
-          orientation: [ 0.5, 0.5, 0.5, -0.5 ]
-        completion:
-          timeout: 5.0
-          AND:
-            - eval: 0.1
-            - speed: 1e-4
-      EndEffectorTaskLeft:
-        type: body6d
-        frame: RightHandWrench
-        weight: 1000
-        stiffness: 5
-        relative:
-          s1: LeftFootCenter
-          s2: RightFootCenter
-          position: [ 0.0, -0.2, 0.8 ]
-          orientation: [ 0.5, -0.5, 0.5, 0.5 ]
-        completion:
-          timeout: 5.0
-          AND:
-            - eval: 0.1
-            - speed: 1e-4
+  Walk:
+    base: BWC::GuiWalk
 
   MoveBox0:
     base: GraspMoveBox
     objectName: zbox0
     graspFromPose: [ 1.25, 0.3, 0.0 ]
-    dropFromPose: [ 0.6, 1.0, 0.0]
+    dropFromPose: [ 0.6, -0.5, -1.57 ]
     objectSurfaceRightGripper: Left
     objectSurfaceLeftGripper: Right
     weight: 1000
     stiffness: 50
     approachOffset: 0.1
-    liftHeight: 0.4
-    liftPullback: 0.0
+    liftHeight: 0.2 # from BODY frame
+    liftDistance: 0.4
+    dropHeight: 0.1 # from BODY frame
+    dropDistance: 0.4
     completionEval: 0.1
     completionSpeed: 1.0e-3
+    Timeout: 2.0
 
   MoveBox1:
     base: GraspMoveBox
     objectName: zbox0
     graspFromPose: [ 1.25, -0.3, 0.0 ]
-    dropFromPose: [ 0.6, 1.0, 0.0 ]
+    dropFromPose: [ 1.25, -0.3, 3.14 ]
     objectSurfaceRightGripper: Left
     objectSurfaceLeftGripper: Right
     weight: 1000
@@ -316,7 +300,7 @@ states:
 
   Main:
     base: Parallel
-    states: [ BWC::GuiWalk, Run ]
+    states: [ Walk, Run ]
 
 
 transitions:
@@ -324,17 +308,6 @@ transitions:
 
 # Initial state
 init: Initial
-
-ObserverPipelines:
-  name: MainObserverPipeline
-  gui: true
-  observers:
-    - type: Encoder
-    - type: Attitude
-    - type: KinematicInertial
-      config:
-        anchorFrame:
-          maxAnchorFrameDiscontinuity: 0.05 # [m]
 
 robots:
   desk:

@@ -17,39 +17,54 @@ struct GraspMoveBox : mc_control::fsm::State
 private:
     enum class Phase
     {
-        Walking,
+        WalkToBox,
         RaiseHands,
-        Approach,
-        Grasping,
-        Lift,
-        Done
+        ApproachBox,
+        GraspBox,
+        RaiseBox,
+        WalkToDrop,
+        LowerBox,
+        DropBox,
+        RemoveHands
     };
 
-    std::shared_ptr<mc_tasks::TransformTask> m_leftGripperTask, m_rightGripperTask;
+    std::shared_ptr<mc_tasks::TransformTask>
+            m_leftGripperTask,
+            m_rightGripperTask;
 
-    std::string m_objectName;
-    std::string m_objectSurfaceLeftGripper, m_objectSurfaceRightGripper;
+    std::string
+            m_objectName,
+            m_objectSurfaceLeftGripper,
+            m_objectSurfaceRightGripper;
 
     Eigen::Vector3d m_graspFromPose, m_dropFromPose;
 
-    double m_stiffness = 1.0;
-    double m_weight = 1000.0;
-    double m_approachOffset = 0.025;
-    double m_liftHeight = 0.10;
-    double m_liftPullback = 0.0;
-    double m_completionEval = 0.05;
-    double m_completionSpeed = 1e-4;
+    double
+            m_stiffness = 1.0,
+            m_weight = 1000.0,
+            m_StartTime = 0.0,
+            m_Timeout = 5.0,
+            m_approachOffset = 0.0,
+            m_liftHeight = 0.1,
+            m_liftDistance = 0.0,
+            m_dropHeight = 0.1,
+            m_dropDistance = 0.0,
+            m_completionEval = 0.05,
+            m_completionSpeed = 1e-3;
 
-    Eigen::Vector3d m_raiseLeftHandPos = Eigen::Vector3d(0.0, 0.2, 0.8);
-    Eigen::Vector3d m_raiseRightHandPos = Eigen::Vector3d(0.0, -0.2, 0.8);
-    Eigen::Quaterniond m_raiseLeftHandOri = Eigen::Quaterniond(0.5, 0.5, 0.5, -0.5);
-    Eigen::Quaterniond m_raiseRightHandOri = Eigen::Quaterniond(0.5, -0.5, 0.5, 0.5);
-    double m_raiseHandsStiffness = 5.0;
-    double m_raiseHandsWeight = 1000.0;
-    double m_raiseHandsCompletionEval = 0.1;
-    double m_raiseHandsCompletionSpeed = 1e-4;
+    Eigen::Vector3d
+            m_raiseLeftHandPosition = Eigen::Vector3d(0.0, 0.25, 0.0),
+            m_raiseRightHandPosition = Eigen::Vector3d(0.0, -0.25, 0.0);
 
-    bool m_contactAdded = false;
-    bool m_removeContactAtTeardown = true;
-    Phase m_phase = Phase::Approach;
+    Eigen::Quaterniond
+            m_raiseLeftHandOrientation = Eigen::Quaterniond(0.5, 0.5, 0.5, -0.5),
+            m_raiseRightHandOrientation = Eigen::Quaterniond(0.5, -0.5, 0.5, 0.5);
+
+    bool
+            m_contactAdded = false,
+            m_removeContactAtTeardown = true;
+
+    Phase m_phase = Phase::ApproachBox;
+
+    Eigen::Vector3d relativePose(Eigen::Vector3d absolutePose, sva::PTransformd robotPose);
 };
