@@ -40,6 +40,15 @@ private:
     double m_completionEval = 0.05;
     double m_completionSpeed = 1e-4;
 
+    Eigen::Vector3d m_raiseLeftHandPos = Eigen::Vector3d(0.0, 0.2, 0.8);
+    Eigen::Vector3d m_raiseRightHandPos = Eigen::Vector3d(0.0, -0.2, 0.8);
+    Eigen::Quaterniond m_raiseLeftHandOri = Eigen::Quaterniond(0.5, 0.5, 0.5, -0.5);
+    Eigen::Quaterniond m_raiseRightHandOri = Eigen::Quaterniond(0.5, -0.5, 0.5, 0.5);
+    double m_raiseHandsStiffness = 5.0;
+    double m_raiseHandsWeight = 1000.0;
+    double m_raiseHandsCompletionEval = 0.1;
+    double m_raiseHandsCompletionSpeed = 1e-4;
+
     bool m_contactAdded = false;
     bool m_removeContactAtTeardown = true;
     Phase m_phase = Phase::Approach;

@@ -21,6 +21,14 @@ void GraspMoveBox::configure(const mc_rtc::Configuration &config)
     config("completionEval", m_completionEval);
     config("completionSpeed", m_completionSpeed);
     config("removeContactsAtTeardown", m_removeContactAtTeardown);
+    config("raiseLeftHandPos", m_raiseLeftHandPos);
+    config("raiseRightHandPos", m_raiseRightHandPos);
+    config("raiseLeftHandOri", m_raiseLeftHandOri);
+    config("raiseRightHandOri", m_raiseRightHandOri);
+    config("raiseHandsStiffness", m_raiseHandsStiffness);
+    config("raiseHandsWeight", m_raiseHandsWeight);
+    config("raiseHandsCompletionEval", m_raiseHandsCompletionEval);
+    config("raiseHandsCompletionSpeed", m_raiseHandsCompletionSpeed);
 }
 
 void GraspMoveBox::start(mc_control::fsm::Controller &ctl_)
@@ -32,47 +40,13 @@ void GraspMoveBox::start(mc_control::fsm::Controller &ctl_)
     mc_rtc::log::info("Now in walking phase");
     m_phase = Phase::Walking;
     m_contactAdded = false;
-
-    m_leftGripperTask = std::make_shared<mc_tasks::TransformTask>
-    (
-        ctl.robot().frame("LeftHandWrench"),
-        m_stiffness,
-        m_weight
-    );
-    // ctl.solver().addTask(m_leftGripperTask);
-
-    auto leftGripperTargetPose = ctl.robot(m_objectName).frame
-            (m_objectSurfaceLeftGripper).position();
-    leftGripperTargetPose.translation() += ctl.robot().posW().rotation() * Eigen::Vector3d
-            (0.0, m_approachOffset, 0.0);
-    // [ 0.7  0. 0. -0.7 ] @ [ 0.7 0. 0.7 0. ]
-    leftGripperTargetPose.rotation() = Eigen::Quaterniond
-            (0.5, 0.5, 0.5, -0.5).toRotationMatrix();
-    m_leftGripperTask->target(leftGripperTargetPose);
-
-    m_rightGripperTask = std::make_shared<mc_tasks::TransformTask>
-    (
-        ctl.robot().frame("RightHandWrench"),
-        m_stiffness,
-        m_weight
-    );
-    // ctl.solver().addTask(m_rightGripperTask);
-
-    auto rightGripperTargetPose = ctl.robot(m_objectName).frame
-            (m_objectSurfaceRightGripper).position();
-    rightGripperTargetPose.translation() += ctl.robot().posW().rotation() *
-            Eigen::Vector3d(0.0, -m_approachOffset, 0.0);
-    // [ 0.7 0. 0. 0.7 ] @ [ 0.7 0. 0.7 0. ]
-    rightGripperTargetPose.rotation() = Eigen::Quaterniond
-            (0.5, -0.5, 0.5, 0.5).toRotationMatrix();
-    m_rightGripperTask->target(rightGripperTargetPose);
 }
 
 bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 {
     auto &ctl = static_cast<DemoController &>(ctl_);
 
-    // This is a hack to ensure the object is visible in mc_mujoco because for some reason the 
+    // This is a hack to ensure the object is visible in mc_mujoco because for some reason the
     // box position does not change in the visualization
     if (m_phase == Phase::Lift)
     {
@@ -84,6 +58,41 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
         }
     }
 
+    if (m_phase == Phase::Walking && ctl.footManager_->footstepQueue().empty())
+    {
+        mc_rtc::log::info("Now in raise hands phase");
+        m_phase = Phase::RaiseHands;
+
+        const auto &leftFootPose = ctl.robot().frame("LeftFootCenter").position();
+        const auto &rightFootPose = ctl.robot().frame("RightFootCenter").position();
+        Eigen::Vector3d midPos = 0.5 * (leftFootPose.translation() + rightFootPose.translation());
+
+        m_leftGripperTask = std::make_shared<mc_tasks::TransformTask>
+        (
+            ctl.robot().frame("LeftHandWrench"),
+            m_raiseHandsStiffness,
+            m_raiseHandsWeight
+        );
+        sva::PTransformd leftTarget;
+        leftTarget.translation() = midPos + m_raiseLeftHandPos;
+        leftTarget.rotation() = m_raiseLeftHandOri.toRotationMatrix();
+        m_leftGripperTask->target(leftTarget);
+        ctl.solver().addTask(m_leftGripperTask);
+
+        m_rightGripperTask = std::make_shared<mc_tasks::TransformTask>
+        (
+            ctl.robot().frame("RightHandWrench"),
+            m_raiseHandsStiffness,
+            m_raiseHandsWeight
+        );
+        sva::PTransformd rightTarget;
+        rightTarget.translation() = midPos + m_raiseRightHandPos;
+        rightTarget.rotation() = m_raiseRightHandOri.toRotationMatrix();
+        m_rightGripperTask->target(rightTarget);
+        ctl.solver().addTask(m_rightGripperTask);
+        return false;
+    }
+
     const bool completed = (
         m_leftGripperTask->eval().norm() < m_completionEval
         && m_leftGripperTask->speed().norm() < m_completionSpeed
@@ -93,6 +102,36 @@ bool GraspMoveBox::run(mc_control::fsm::Controller &ctl_)
 
     if (!completed)
     {
+        return false;
+    }
+
+    if (m_phase == Phase::RaiseHands)
+    {
+        mc_rtc::log::info("Now in approach phase");
+        m_phase = Phase::Approach;
+
+        // Reconfigure tasks for approach
+        m_leftGripperTask->stiffness(m_stiffness);
+        m_leftGripperTask->weight(m_weight);
+
+        auto leftGripperTargetPose = ctl.robot(m_objectName).frame
+                (m_objectSurfaceLeftGripper).position();
+        leftGripperTargetPose.translation() += ctl.robot().posW().rotation() * Eigen::Vector3d
+                (0.0, m_approachOffset, 0.0);
+        leftGripperTargetPose.rotation() = Eigen::Quaterniond
+                (0.5, 0.5, 0.5, -0.5).toRotationMatrix();
+        m_leftGripperTask->target(leftGripperTargetPose);
+
+        m_rightGripperTask->stiffness(m_stiffness);
+        m_rightGripperTask->weight(m_weight);
+
+        auto rightGripperTargetPose = ctl.robot(m_objectName).frame
+                (m_objectSurfaceRightGripper).position();
+        rightGripperTargetPose.translation() += ctl.robot().posW().rotation() *
+                Eigen::Vector3d(0.0, -m_approachOffset, 0.0);
+        rightGripperTargetPose.rotation() = Eigen::Quaterniond
+                (0.5, -0.5, 0.5, 0.5).toRotationMatrix();
+        m_rightGripperTask->target(rightGripperTargetPose);
         return false;
     }
 
