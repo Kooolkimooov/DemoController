@@ -477,23 +477,23 @@ void GraspMoveBox::teardown(mc_control::fsm::Controller &ctl_)
     }
 }
 
-// TODO: fix big inacuracyc
+// TODO: fix big inaccuracy
 Eigen::Vector3d GraspMoveBox::relativePose(Eigen::Vector3d absolutePose, sva::PTransformd robotPose)
 {
-    const double robotYaw = mc_rbdyn::rpyFromMat(robotPose.rotation()).z();
-    Eigen::Rotation2Dd rot(-robotYaw);
-    Eigen::Vector2d relPos = rot * (absolutePose.head<2>() - robotPose.translation().head<2>());
+    double angle(mc_rbdyn::rpyFromMat(robotPose.rotation()).z());
+    Eigen::Matrix2d rotation = Eigen::Rotation2Dd(-angle).toRotationMatrix();
 
-    auto normalizeAngle = [](double angle)
-    {
-        angle = std::fmod(angle + M_PI, 2.0 * M_PI);
-        if (angle < 0.0) angle += 2.0 * M_PI;
-        return angle - M_PI;
-    };
+    Eigen::Vector2d relativePosition
+    (
+        absolutePose.x() - robotPose.translation().x(),
+        absolutePose.y() - robotPose.translation().y()
+    );
+    relativePosition = rotation.inverse() * relativePosition;
 
-    double relYaw = normalizeAngle(absolutePose.z() - robotYaw);
+    Eigen::Vector3d relativePose
+            (relativePosition.x(), relativePosition.y(), absolutePose.z() - angle);
 
-    return Eigen::Vector3d(relPos.x(), relPos.y(), relYaw);
+    return relativePose;
 }
 
 EXPORT_SINGLE_STATE("GraspMoveBox", GraspMoveBox)
