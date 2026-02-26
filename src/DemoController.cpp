@@ -1,8 +1,10 @@
 #include "DemoController.h"
 
-DemoController::DemoController
-(mc_rbdyn::RobotModulePtr rm, double dt, const mc_rtc::Configuration &config)
-    : BWC::BaselineWalkingController(rm, dt, config)
+DemoController::DemoController(
+        mc_rbdyn::RobotModulePtr     rm,
+        double                       dt,
+        const mc_rtc::Configuration &config
+        ): BWC::BaselineWalkingController(rm, dt, config)
 {
     for (const auto &k: config("robots").keys())
     {
