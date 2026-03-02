@@ -63,13 +63,13 @@ void GraspMoveBox::start(mc_control::fsm::Controller &ctl_)
                                                      );
 
     m_leftContact = mc_control::Contact(
-                                        ctl.robot().name(),
-                                        ctl.robot(m_objectName).name(),
-                                        "RightHandWrench",
-                                        m_objectSurfaceRightGripper,
-                                        mc_rbdyn::Contact::defaultFriction,
-                                        Eigen::Vector6d::Ones()
-                                       );
+            ctl.robot().name(),
+            ctl.robot(m_objectName).name(),
+            "LeftHandWrench",
+            m_objectSurfaceLeftGripper,
+            mc_rbdyn::Contact::defaultFriction,
+            Eigen::Vector6d::Ones());
+
     m_rightContact = mc_control::Contact(
                                          ctl.robot().name(),
                                          ctl.robot(m_objectName).name(),
