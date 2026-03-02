@@ -6,7 +6,7 @@
 
 #include "mc_control/Contact.h"
 
-struct GraspMoveBox: mc_control::fsm::State
+struct GraspMoveBox : mc_control::fsm::State
 {
     public:
         void configure(const mc_rtc::Configuration &) override;
@@ -15,6 +15,25 @@ struct GraspMoveBox: mc_control::fsm::State
         void teardown(mc_control::fsm::Controller &) override;
 
     private:
+        const std::vector<std::string> LeftArmJoints = {
+                "L_SHOULDER_P",
+                "L_SHOULDER_R",
+                "L_SHOULDER_Y",
+                "L_ELBOW_P",
+                "L_ELBOW_Y",
+                "L_WRIST_R",
+                "L_WRIST_Y",
+        };
+        const std::vector<std::string> RightArmJoints = {
+                "R_SHOULDER_P",
+                "R_SHOULDER_R",
+                "R_SHOULDER_Y",
+                "R_ELBOW_P",
+                "R_ELBOW_Y",
+                "R_WRIST_R",
+                "R_WRIST_Y",
+        };
+
         enum class Phase
         {
             None,
@@ -29,49 +48,29 @@ struct GraspMoveBox: mc_control::fsm::State
             RemoveHands
         };
 
-        std::shared_ptr<mc_tasks::TransformTask> m_leftGripperTask,
-                                                 m_rightGripperTask;
+        std::shared_ptr<mc_tasks::TransformTask> m_leftGripperTask, m_rightGripperTask;
 
-        std::string m_objectName,
-                    m_objectSurfaceLeftGripper,
-                    m_objectSurfaceRightGripper;
+        std::string m_objectName, m_objectSurfaceLeftGripper, m_objectSurfaceRightGripper;
 
         Phase m_phase = Phase::None;
 
-        double m_stiffness       = 1.0,
-               m_weight          = 1000.0,
-               m_StartTime       = 0.0,
-               m_Timeout         = 5.0,
-               m_approachOffset  = 0.0,
-               m_liftHeight      = 0.1,
-               m_liftDistance    = 0.0,
-               m_dropHeight      = 0.1,
-               m_dropDistance    = 0.0,
-               m_completionEval  = 0.05,
-               m_completionSpeed = 1e-3,
-               m_BoxHalfWidth    = 0.0;
+        double m_stiffness = 1.0, m_weight = 1000.0, m_StartTime = 0.0, m_Timeout = 5.0, m_approachOffset = 0.0,
+               m_liftHeight = 0.1, m_liftDistance = 0.0, m_dropHeight = 0.1, m_dropDistance = 0.0,
+               m_completionEval = 0.05, m_completionSpeed = 1e-3, m_BoxHalfWidth = 0.0;
 
-        bool m_contactAdded            = false,
-             m_removeContactAtTeardown = true,
-             m_manualPhaseChange       = false,
-             m_allowPhaseChange        = true;
+        bool m_contactAdded = false, m_removeContactAtTeardown = true, m_manualPhaseChange = false,
+             m_allowPhaseChange = true;
 
         mc_control::Contact m_leftContact{}, m_rightContact{};
 
-        Eigen::Vector3d m_graspFromPoseWorld,
-                        m_dropFromPoseWorld,
-                        m_Target2DRobot,
-                        m_safeLeftHandPositionRobot  = Eigen::Vector3d(0.0, 0.25, 0.0),
-                        m_safeRightHandPositionRobot = Eigen::Vector3d(0.0, -0.25, 0.0);
+        Eigen::Vector3d m_graspFromPoseWorld, m_dropFromPoseWorld, m_Target2DRobot,
+                m_safeLeftHandPositionRobot  = Eigen::Vector3d(0.0, 0.25, 0.0),
+                m_safeRightHandPositionRobot = Eigen::Vector3d(0.0, -0.25, 0.0);
 
-        Eigen::Quaterniond
-                m_leftHandGraspOrientationRobot  = Eigen::Quaterniond(0.5, 0.5, 0.5, -0.5),
-                m_rightHandGraspOrientationRobot = Eigen::Quaterniond(0.5, -0.5, 0.5, 0.5);
+        Eigen::Quaterniond m_leftHandGraspOrientationRobot  = Eigen::Quaterniond(0.5, 0.5, 0.5, -0.5),
+                           m_rightHandGraspOrientationRobot = Eigen::Quaterniond(0.5, -0.5, 0.5, 0.5);
 
-        sva::PTransformd m_leftHandTargetWorld,
-                         m_leftHandTargetRobot,
-                         m_rightHandTargetWorld,
-                         m_rightHandTargetRobot;
+        sva::PTransformd m_leftHandTargetWorld, m_leftHandTargetRobot, m_rightHandTargetWorld, m_rightHandTargetRobot;
 
         Eigen::Matrix3d  toXYPlane(Eigen::Matrix3d);
         sva::PTransformd toHorizonAlignedPoseWorld(sva::PTransformd, sva::PTransformd);
