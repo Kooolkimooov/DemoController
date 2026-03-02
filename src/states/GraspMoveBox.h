@@ -2,7 +2,7 @@
 
 #include <mc_control/fsm/State.h>
 #include <mc_tasks/TransformTask.h>
-#include <memory>
+#include <mc_tasks/RelativeEndEffectorTask.h>
 
 #include "mc_control/Contact.h"
 
@@ -48,7 +48,7 @@ struct GraspMoveBox : mc_control::fsm::State
             RemoveHands
         };
 
-        std::shared_ptr<mc_tasks::TransformTask> m_leftGripperTask, m_rightGripperTask;
+        std::shared_ptr<mc_tasks::RelativeEndEffectorTask> m_leftGripperTask, m_rightGripperTask;
 
         std::string m_objectName, m_objectSurfaceLeftGripper, m_objectSurfaceRightGripper;
 
