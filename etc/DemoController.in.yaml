@@ -26,12 +26,12 @@ constraints:
   - type: compoundJoint
 # Collision constraint
 collisions:
-  # - type: collision
-  #   useMinimal: true
- - type: collision
-   r1: rhps1
-   r2: desk
-   useMinimal: true
+  - type: collision
+    useMinimal: true
+  - type: collision
+    r1: rhps1
+    r2: desk
+    useMinimal: true
 #    collisions:
 #    - body1: L_WRIST_Y_LINK
 #      body2: table
@@ -303,7 +303,7 @@ states:
     objectSurfaceRightGripper: Left
     objectSurfaceLeftGripper: Right
     weight: 2000
-    stiffness: 5
+    stiffness: 2
     approachOffset: 0.05
     leftGripperOffset: 0.1
     rightGripperOffset: -0.06
