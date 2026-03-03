@@ -2,7 +2,10 @@
 #include "../DemoController.h"
 
 #include <BaselineWalkingController/FootManager.h>
-#include <Eigen/Core>
+
+void GoTo::configure(const mc_rtc::Configuration & config)
+{
+}
 
 void GoTo::start(mc_control::fsm::Controller &ctl_)
 {
@@ -25,7 +28,8 @@ bool GoTo::run(mc_control::fsm::Controller &ctl_)
 }
 
 void GoTo::teardown(mc_control::fsm::Controller &ctl_)
-{}
+{
+}
 
 Eigen::Vector3d GoTo::computeRelativePose(Eigen::Vector3d PoseWorld, sva::PTransformd robotPoseWorld)
 {
@@ -40,5 +44,3 @@ Eigen::Vector3d GoTo::computeRelativePose(Eigen::Vector3d PoseWorld, sva::PTrans
 
     return relativePose;
 }
-
-EXPORT_SINGLE_STATE("GoTo", GoTo)
