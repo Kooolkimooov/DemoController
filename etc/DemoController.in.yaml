@@ -49,7 +49,7 @@ PostureTask:
 
 CoMTask:
   type: com
-  stiffness: [10.0, 10.0, 10.0]
+  stiffness: [1000.0, 1000.0, 1000.0]
   weight: 1000.0
 
 BaseOrientationTask:
@@ -297,7 +297,7 @@ states:
 
   GoToBox0:
     base: GoToBoxPickupPose
-    graspFromPoseWorld: [1.25, 0.3, 0.0]
+    graspFromPoseWorld: [1.25, 0.31, 0.0]
 
   PickupBox0:
     base: PickupBox
@@ -305,23 +305,21 @@ states:
     objectSurfaceLeftGripper: Right
     objectSurfaceRightGripper: Left
     stiffness: 2
-    weight: 2000
-    Timeout: 3.0
+    weight: 4000
+    timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-3
     manualPhaseChange: false
     leftApproachOffset: [0.0, 0.0, 0.05]
     rightApproachOffset: [ 0.0, 0.0, 0.05]
-    leftGraspOffset: [0.0, 0.0, 0.06]
-    # rightGraspOffset: [0.0, -0.06, 0.0]
-    # leftCarryPositionRobot: [0.4, 0.0, 0.0]
-    # rightCarryPositionRobot: [0.4, 0.0, 0.0]
+    leftGraspOffset: [0.0, 0.0, 0.1]
+    rightGraspOffset: [0.0, 0.0, 0.04]
+    leftCarryPositionRobot: [0.2, 0.0, 0.0] # y value is automatically set with box width
+    rightCarryPositionRobot: [0.2, 0.0, 0.0]
     leftCarryOrientationRobot: [0.70710678, 0., 0.70710678, 0.]
     rightCarryOrientationRobot: [0.70710678, 0., 0.70710678, 0.]
-    leftHandRaisePositionRobot: [-0.1, 0.3, -0.0]
-    rightHandRaisePositionRobot: [-0.1, -0.3, -0.0]
-    # leftHandGraspOrientationRobot: [0.0, 0.0, 0.0, 0.0]
-    # rightHandGraspOrientationRobot: [0.0, 0.0, 0.0, 0.0]
+    leftRaisePositionRobot: [-0.05, 0.35, -0.0]
+    rightRaisePositionRobot: [-0.05, -0.35, -0.0]
 
   # MoveBox1:
   #   base: GraspMoveBox

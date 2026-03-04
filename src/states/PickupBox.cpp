@@ -2,9 +2,11 @@
 #include "../DemoController.h"
 #include "./utils.h"
 
+#include <BaselineWalkingController/CentroidalManager.h>
+#include <SpaceVecAlg/PTransform.h>
 #include <mc_rtc/gui/Label.h>
+#include <mc_tasks/CoMTask.h>
 #include <mc_tasks/TransformTask.h>
-
 
 void PickupBox::configure(const mc_rtc::Configuration &config)
 {
@@ -16,9 +18,12 @@ void PickupBox::configure(const mc_rtc::Configuration &config)
     config("objectSurfaceRightGripper", m_objectSurfaceRightGripper);
     config("stiffness", m_stiffness);
     config("weight", m_weight);
-    config("Timeout", m_Timeout);
+    config("timeout", m_timeout);
     config("completionEval", m_completionEval);
     config("completionSpeed", m_completionSpeed);
+    config("leftShoulderZAngle", m_leftShoulderZAngle);
+    config("rightShoulderZAngle", m_rightShoulderZAngle);
+    config("crouchOffset", m_crouchOffset);
     config("removeContactsAtTeardown", m_removeContactAtTeardown);
     config("manualPhaseChange", m_manualPhaseChange);
     config("leftApproachOffset", m_leftApproachOffset);
@@ -50,7 +55,7 @@ void PickupBox::start(mc_control::fsm::Controller &ctl_)
     m_leftElbowOrientationTask = std::make_shared<mc_tasks::OrientationTask>(
             ctl.robot().frame("L_SHOULDER_Y_LINK"), m_stiffness, m_weight / 2);
     m_leftElbowOrientationTask->selectActiveJoints(ctl.solver(), {"L_SHOULDER_Y"});
-    m_leftElbowOrientationTask->orientation(Eigen::Quaterniond(0.99144486, 0.0, -0.13052619, 0.).toRotationMatrix());
+    m_leftElbowOrientationTask->orientation(sva::RotZ(m_leftShoulderZAngle));
 
     ctl.solver().addTask(m_leftElbowOrientationTask);
 
@@ -61,7 +66,7 @@ void PickupBox::start(mc_control::fsm::Controller &ctl_)
     m_rightElbowOrientationTask = std::make_shared<mc_tasks::OrientationTask>(
             ctl.robot().frame("R_SHOULDER_Y_LINK"), m_stiffness, m_weight / 2);
     m_rightElbowOrientationTask->selectActiveJoints(ctl.solver(), {"R_SHOULDER_Y"});
-    m_rightElbowOrientationTask->orientation(Eigen::Quaterniond(0.99144486, 0.0, 0.13052619, 0.).toRotationMatrix());
+    m_rightElbowOrientationTask->orientation(sva::RotZ(m_rightShoulderZAngle));
 
     ctl.solver().addTask(m_rightElbowOrientationTask);
 
@@ -81,11 +86,14 @@ void PickupBox::start(mc_control::fsm::Controller &ctl_)
             mc_rbdyn::Contact::defaultFriction,
             Eigen::Vector6d::Ones());
 
-    m_BoxHalfWidth = 0.5 *
+    m_boxHalfWidth = 0.5 *
             (ctl.robot(m_objectName).frame(m_objectSurfaceLeftGripper).position().translation() -
              ctl.robot(m_objectName).frame(m_objectSurfaceRightGripper).position().translation())
                     .norm();
 
+    m_leftCarryPositionRobot.y()  = m_boxHalfWidth;
+    m_rightCarryPositionRobot.y() = -m_boxHalfWidth;
+    m_refComZ                     = ctl.comTask_->com().z();
 
     ctl.gui()->addElement({"GraspMoveBox"}, mc_rtc::gui::Button("Next Phase", [this] { m_allowPhaseChange = true; }));
 
@@ -137,7 +145,7 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
         mc_rtc::log::info("Now in raise hands phase");
         m_phase = Phase::RaiseHands;
 
-        m_StartTime = ctl.t();
+        m_startTime = ctl.t();
 
         m_leftGripperTask->target(
                 ctl.robot().frame(m_robotReferenceFrame), {m_leftRaiseOrientationRobot, m_leftRaisePositionRobot});
@@ -156,7 +164,7 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
              m_rightGripperTask->eval().norm() < m_completionEval &&
              m_rightGripperTask->speed().norm() < m_completionSpeed);
 
-    if (m_phase == Phase::RaiseHands && m_StartTime + m_Timeout < ctl.t())
+    if (m_phase == Phase::RaiseHands && m_startTime + m_timeout < ctl.t())
     {
         mc_rtc::log::info("raise hands timed out");
         completed = true;
@@ -171,7 +179,7 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
         m_phase = Phase::ApproachBox;
 
         // set to max double to deactivate the timeout
-        m_StartTime = std::numeric_limits<double>::max();
+        m_startTime = std::numeric_limits<double>::max();
 
         m_leftGripperTask->targetSurface(
                 ctl.robot(m_objectName).robotIndex(),
@@ -182,6 +190,8 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
                 ctl.robot(m_objectName).robotIndex(),
                 m_objectSurfaceRightGripper,
                 {m_rightCarryOrientationRobot, (m_rightApproachOffset + m_rightGraspOffset).eval()});
+
+        ctl.centroidalManager_->setRefComZ(m_refComZ - m_crouchOffset, ctl.t(), 1.0);
 
         return false;
     }
@@ -220,10 +230,12 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
         m_contactAdded = true;
 
         m_leftGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame), {m_leftCarryOrientationRobot, m_leftCarryPositionRobot});
+                ctl.robot().frame(m_robotReferenceFrame), {m_leftRaiseOrientationRobot, m_leftCarryPositionRobot});
 
         m_rightGripperTask->target(
-                ctl.robot().frame(m_robotReferenceFrame), {m_rightCarryOrientationRobot, m_rightCarryPositionRobot});
+                ctl.robot().frame(m_robotReferenceFrame), {m_rightRaiseOrientationRobot, m_rightCarryPositionRobot});
+
+        ctl.centroidalManager_->setRefComZ(m_refComZ, ctl.t(), 1.0);
 
         return false;
     }

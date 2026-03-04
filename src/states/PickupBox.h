@@ -37,13 +37,17 @@ struct PickupBox : mc_control::fsm::State
 
         Phase m_phase = Phase::None;
 
-        double m_stiffness       = 2.0;
-        double m_weight          = 2000.0;
-        double m_StartTime       = 0.0;
-        double m_Timeout         = 5.0;
-        double m_completionEval  = 0.05;
-        double m_completionSpeed = 1e-3;
-        double m_BoxHalfWidth    = 0.0;
+        double m_stiffness           = 2.0;
+        double m_weight              = 2000.0;
+        double m_startTime           = 0.0;
+        double m_timeout             = 5.0;
+        double m_completionEval      = 0.05;
+        double m_completionSpeed     = 1e-3;
+        double m_boxHalfWidth        = 0.0;
+        double m_leftShoulderZAngle  = -5.0 * M_PI / 180.0;
+        double m_rightShoulderZAngle = 5.0 * M_PI / 180.0;
+        double m_crouchOffset        = 0.05;
+        double m_refComZ;
 
         bool m_contactAdded            = false;
         bool m_removeContactAtTeardown = false;
