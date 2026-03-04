@@ -78,6 +78,16 @@ void GoToBoxDropoffPose::start(mc_control::fsm::Controller & ctl_)
 
 bool GoToBoxDropoffPose::run(mc_control::fsm::Controller & ctl_)
 {
+    auto & ctl = static_cast<DemoController&>(ctl_);
+
+    // This is a hack to ensure the object is visible in mc_mujoco because for some reason the
+    // box position does not change in the visualization
+    const auto setPosWCall = m_objectName + "::SetPosW";
+    if (ctl.datastore().has(setPosWCall))
+    {
+        const auto & objectPosW = ctl.robot(m_objectName).posW();
+        ctl.datastore().call<void, const sva::PTransformd&>(setPosWCall, objectPosW);
+    }
     return GoTo::run(ctl_);
 }
 
