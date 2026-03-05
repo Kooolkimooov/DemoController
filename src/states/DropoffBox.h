@@ -1,8 +1,8 @@
 #pragma once
 
 #include <mc_control/fsm/State.h>
-#include <mc_tasks/TransformTask.h>
 #include <mc_tasks/OrientationTask.h>
+#include <mc_tasks/TransformTask.h>
 
 #include "mc_control/Contact.h"
 
@@ -23,8 +23,8 @@ struct DropoffBox : mc_control::fsm::State
             RemoveHands
         };
 
-        std::shared_ptr<mc_tasks::TransformTask> m_leftGripperTask;
-        std::shared_ptr<mc_tasks::TransformTask> m_rightGripperTask;
+        std::shared_ptr<mc_tasks::TransformTask>   m_leftGripperTask;
+        std::shared_ptr<mc_tasks::TransformTask>   m_rightGripperTask;
         std::shared_ptr<mc_tasks::OrientationTask> m_leftElbowOrientationTask;
         std::shared_ptr<mc_tasks::OrientationTask> m_rightElbowOrientationTask;
 

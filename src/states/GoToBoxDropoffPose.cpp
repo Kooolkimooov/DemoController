@@ -4,7 +4,7 @@
 #include "../DemoController.h"
 #include "./utils.h"
 
-void GoToBoxDropoffPose::configure(const mc_rtc::Configuration & config)
+void GoToBoxDropoffPose::configure(const mc_rtc::Configuration &config)
 {
     mc_rtc::log::info("\n{}", config.dump(true, true));
 
@@ -21,13 +21,13 @@ void GoToBoxDropoffPose::configure(const mc_rtc::Configuration & config)
     config("rightOrientationRobot", m_rightOrientationRobot);
 }
 
-void GoToBoxDropoffPose::start(mc_control::fsm::Controller & ctl_)
+void GoToBoxDropoffPose::start(mc_control::fsm::Controller &ctl_)
 {
-    auto & ctl = static_cast<DemoController&>(ctl_);
+    auto &ctl = static_cast<DemoController &>(ctl_);
 
     bool hasLeftContact = false, hasRightContact = false;
 
-    for (const auto & c : ctl.contacts())
+    for (const auto &c : ctl.contacts())
     {
         mc_rtc::log::info("contact: {}:{} <-> {}:{}", c.r1->c_str(), c.r1Surface, c.r2->c_str(), c.r2Surface);
 
@@ -43,32 +43,20 @@ void GoToBoxDropoffPose::start(mc_control::fsm::Controller & ctl_)
 
     const double boxHalfWidth = 0.5 *
             (ctl.robot(m_objectName).frame(m_objectSurfaceLeftGripper).position().translation() -
-                ctl.robot(m_objectName).frame(m_objectSurfaceRightGripper).position().translation())
-           .norm();
+             ctl.robot(m_objectName).frame(m_objectSurfaceRightGripper).position().translation())
+                    .norm();
 
     m_leftPositionRobot.y()  = boxHalfWidth;
     m_rightPositionRobot.y() = -boxHalfWidth;
 
     m_leftGripperTask = std::make_shared<mc_tasks::RelativeEndEffectorTask>(
-                                                                            "LeftHandWrench",
-                                                                            ctl.robots(),
-                                                                            0,
-                                                                            m_robotReferenceFrame,
-                                                                            m_stiffness,
-                                                                            m_weight
-                                                                           );
+            "LeftHandWrench", ctl.robots(), 0, m_robotReferenceFrame, m_stiffness, m_weight);
     m_leftGripperTask->selectActiveJoints(ctl.solver(), LeftArmJoints);
     m_leftGripperTask->set_ef_pose({m_leftOrientationRobot, m_leftPositionRobot});
     ctl.solver().addTask(m_leftGripperTask);
 
     m_rightGripperTask = std::make_shared<mc_tasks::RelativeEndEffectorTask>(
-                                                                             "RightHandWrench",
-                                                                             ctl.robots(),
-                                                                             0,
-                                                                             m_robotReferenceFrame,
-                                                                             m_stiffness,
-                                                                             m_weight
-                                                                            );
+            "RightHandWrench", ctl.robots(), 0, m_robotReferenceFrame, m_stiffness, m_weight);
     m_rightGripperTask->selectActiveJoints(ctl.solver(), RightArmJoints);
     m_rightGripperTask->set_ef_pose({m_rightOrientationRobot, m_rightPositionRobot});
     ctl.solver().addTask(m_rightGripperTask);
@@ -76,24 +64,24 @@ void GoToBoxDropoffPose::start(mc_control::fsm::Controller & ctl_)
     GoTo::start(ctl_);
 }
 
-bool GoToBoxDropoffPose::run(mc_control::fsm::Controller & ctl_)
+bool GoToBoxDropoffPose::run(mc_control::fsm::Controller &ctl_)
 {
-    auto & ctl = static_cast<DemoController&>(ctl_);
+    auto &ctl = static_cast<DemoController &>(ctl_);
 
     // This is a hack to ensure the object is visible in mc_mujoco because for some reason the
     // box position does not change in the visualization
     const auto setPosWCall = m_objectName + "::SetPosW";
     if (ctl.datastore().has(setPosWCall))
     {
-        const auto & objectPosW = ctl.robot(m_objectName).posW();
-        ctl.datastore().call<void, const sva::PTransformd&>(setPosWCall, objectPosW);
+        const auto &objectPosW = ctl.robot(m_objectName).posW();
+        ctl.datastore().call<void, const sva::PTransformd &>(setPosWCall, objectPosW);
     }
     return GoTo::run(ctl_);
 }
 
-void GoToBoxDropoffPose::teardown(mc_control::fsm::Controller & ctl_)
+void GoToBoxDropoffPose::teardown(mc_control::fsm::Controller &ctl_)
 {
-    auto & ctl = static_cast<DemoController&>(ctl_);
+    auto &ctl = static_cast<DemoController &>(ctl_);
 
     ctl.solver().removeTask(m_leftGripperTask);
     ctl.solver().removeTask(m_rightGripperTask);
