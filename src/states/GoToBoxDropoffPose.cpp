@@ -93,6 +93,11 @@ bool GoToBoxDropoffPose::run(mc_control::fsm::Controller & ctl_)
 
 void GoToBoxDropoffPose::teardown(mc_control::fsm::Controller & ctl_)
 {
+    auto & ctl = static_cast<DemoController&>(ctl_);
+
+    ctl.solver().removeTask(m_leftGripperTask);
+    ctl.solver().removeTask(m_rightGripperTask);
+
     GoTo::teardown(ctl_);
 }
 
