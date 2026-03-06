@@ -331,17 +331,17 @@ states:
     objectSurfaceLeftGripper: Right
     objectSurfaceRightGripper: Left
     stiffness: 2
-    weight: 4000
+    weight: 100000
     timeout: 3.0
     completionEval: 0.05
     completionSpeed: 2.0e-3
     manualPhaseChange: false
     approachOffset: 0.05
-    crouchOffset: 0.0
+    crouchOffset: 0.1
     leftGripperContactOffset: 0.1
     rightGripperContactOffset: 0.06
-    leftRaisePositionRobot: [ -0.1, 0.35, -0.1 ]
-    rightRaisePositionRobot: [ -0.1, -0.35, -0.1 ]
+    leftRaisePositionRobot: [ 0.15, 0.3, -0.2 ]
+    rightRaisePositionRobot: [ 0.15, -0.3, -0.2 ]
     leftCarryPositionRobot: [ 0.3, 0.0, -0.1 ] # y value is automatically set with box width
     rightCarryPositionRobot: [ 0.3, 0.0, -0.1 ]
     leftOrientationRobot: [ 0.5, 0.5, 0.5, -0.5 ]
