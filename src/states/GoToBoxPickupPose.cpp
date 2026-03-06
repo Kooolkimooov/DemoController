@@ -5,6 +5,8 @@ void GoToBoxPickupPose::configure(const mc_rtc::Configuration &config)
     mc_rtc::log::info("\n{}", config.dump(true, true));
 
     config("pickupPoseWorld", m_destinationPoseWorld);
+
+    GoTo::configure(config);
 }
 
 void GoToBoxPickupPose::start(mc_control::fsm::Controller &ctl_)

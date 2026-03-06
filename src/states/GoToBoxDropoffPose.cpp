@@ -19,6 +19,8 @@ void GoToBoxDropoffPose::configure(const mc_rtc::Configuration &config)
     config("rightPositionRobot", m_rightPositionRobot);
     config("leftOrientationRobot", m_leftOrientationRobot);
     config("rightOrientationRobot", m_rightOrientationRobot);
+
+    GoTo::configure(config);
 }
 
 void GoToBoxDropoffPose::start(mc_control::fsm::Controller &ctl_)

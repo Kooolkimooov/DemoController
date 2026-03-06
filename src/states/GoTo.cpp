@@ -5,6 +5,7 @@
 
 void GoTo::configure(const mc_rtc::Configuration &config)
 {
+    mc_rtc::log::info("\n{}", config.dump(true, true));
     config("autoStart", m_autoStart);
 }
 
