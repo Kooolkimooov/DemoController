@@ -200,9 +200,9 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
                 m_objectSurfaceRightGripper,
                 {m_rightOrientationBox, (m_rightApproachOffsetBox + m_rightGraspOffsetBox).eval()});
 
-        ctl.centroidalManager_->setRefComZ(m_refComZ - m_crouchOffset, ctl.t(), 1.0);
         ctl.solver().addTask(m_leftElbowOrientationTask);
         ctl.solver().addTask(m_rightElbowOrientationTask);
+        ctl.centroidalManager_->setRefComZ(m_refComZ - m_crouchOffset, ctl.t(), m_crouchOffset * 20.0);
 
         return false;
     }
@@ -248,7 +248,7 @@ bool PickupBox::run(mc_control::fsm::Controller &ctl_)
                 ctl.robot().frame(m_robotReferenceFrame),
                 {m_rightOrientationRobot, m_rightCarryPositionRobot + m_rightGraspOffsetRobot});
 
-        ctl.centroidalManager_->setRefComZ(m_refComZ, ctl.t(), 1.0);
+        ctl.centroidalManager_->setRefComZ(m_refComZ, ctl.t(), m_crouchOffset * 20.0);
 
         return false;
     }
